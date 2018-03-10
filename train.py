@@ -34,7 +34,7 @@ adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_da
 
 # Some preprocessing
 features = preprocess_features(features)#按行归一化，转为tuple，将归一化的结果放在之前的feature后面
-# print("features---", features)
+print("features---", features)
 # print("FLAGS.model---", FLAGS.model)
 if FLAGS.model == 'gcn':
     support = [preprocess_adj(adj)]##按行归一化，转为tuple，将归一化的结果放在之前的adj后面

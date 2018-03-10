@@ -34,13 +34,15 @@ def load_data(dataset_str):
                 objects.append(pkl.load(f))
 
     x, y, tx, ty, allx, ally, graph = tuple(objects)
-    # x是训练样例的特征向量，eg (0, 19)	1.0
-    # y是训练样例的标签，即文章的分类，one-hot,一共7个分类
-    # tx，ty 是测试样例
+    # x是训练样例的特征向量，eg (0, 19)	1.0,有140个训练杨莉
+    # y是训练样例的标签，即文章的分类，one-hot,一共7个分类,[0 0 0 1 0 0 0]
+    # tx，ty 是测试样例 (0, 311)	1.0,[0 0 0 ..., 0 0 0]
     # allx，ally是所有样例
     # graph 是dict,格式{index:[邻居节点的index]} 顺序是allx的顺序，每一篇paper的邻居节点
-    # print('tx:')
-    # print(tx)
+    # defaultdict(<class 'list'>, {0: [633, 1862, 2582], 1: [2, 652, 654]... 2707: [598, 165, 1473, 2706]
+    # print('x:')
+    # print(x)
+    # test_idx_reorder 是文件中Test样例的index
     test_idx_reorder = parse_index_file("data/ind.{}.test.index".format(dataset_str))#Test index
     # print('test_idx_reorder')
     # print(test_idx_reorder)
@@ -61,17 +63,30 @@ def load_data(dataset_str):
 
     features = sp.vstack((allx, tx)).tolil()#连接矩阵allx,tx，再转化为链表格式,2707个节点对应的引用，eg(2707, 1392)	1.0
     features[test_idx_reorder, :] = features[test_idx_range, :]# 将测试部分的index重新排序了 eg(2707, 1414)	1.0
+    # print('features:')
+    # print(features.shape[0])
     adj = nx.adjacency_matrix(nx.from_dict_of_lists(graph))#将graph转化为networkx的图，返回一个邻接矩阵,eg  (2707, 2706)	1
     labels = np.vstack((ally, ty))
-    labels[test_idx_reorder, :] = labels[test_idx_range, :]
+    labels[test_idx_reorder, :] = labels[test_idx_range, :]#label是所有样例的
 
-    idx_test = test_idx_range.tolist()
-    idx_train = range(len(y))
-    idx_val = range(len(y), len(y)+500)
+    idx_test = test_idx_range.tolist()#有1000个Test样例
+    # print('idx_test:')
+    # print(len(idx_test))
+    idx_train = range(len(y))# range(0,140)，由140个训练样例
+    # print('idx_train:')
+    # print(len(idx_train))
+    idx_val = range(len(y), len(y)+500)#用来valid的index ，有500个
 
     train_mask = sample_mask(idx_train, labels.shape[0]) #(2708,) [ True  True  True ..., False False False],shape[0]是labels的行数
-    val_mask = sample_mask(idx_val, labels.shape[0])
-    test_mask = sample_mask(idx_test, labels.shape[0])
+    val_mask = sample_mask(idx_val, labels.shape[0])#2708行
+    test_mask = sample_mask(idx_test, labels.shape[0])#2708行
+    # print('train_mask:')
+    # print(train_mask)
+    # print('val_mask:')
+    # print(val_mask)
+    # print('test_mask:')
+    # print(test_mask)
+
 
     y_train = np.zeros(labels.shape)
     y_val = np.zeros(labels.shape)
